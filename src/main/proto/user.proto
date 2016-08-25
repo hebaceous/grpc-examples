@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package user;
+
+option java_package = "me.hebaceous.grpc";
+option java_outer_classname = "UserProto";
+
+import "google/protobuf/empty.proto";
+
+message User {
+    int32 id = 1;
+    string name = 2;
+}
+
+service UserService {
+    rpc All (google.protobuf.Empty) returns (stream User) {}
+}

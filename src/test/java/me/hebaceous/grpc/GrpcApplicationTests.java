@@ -2,8 +2,9 @@ package me.hebaceous.grpc;
 
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
+import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
+import io.grpc.ForwardingClientCallListener.SimpleForwardingClientCallListener;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import me.hebaceous.grpc.UserServiceGrpc.UserServiceBlockingStub;
@@ -33,11 +34,35 @@ public class GrpcApplicationTests {
     private UserServiceBlockingStub userServiceBlockingStub;
     private UserServiceStub userServiceStub;
 
+    private class GrpcClientInterceptor implements ClientInterceptor {
+        @Override
+        public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+            return new SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
+                @Override
+                public void start(Listener<RespT> responseListener, Metadata headers) {
+                    LOGGER.info("ClientInterceptor:headers:send:{}", headers);
+                    super.start(new SimpleForwardingClientCallListener<RespT>(responseListener) {
+                        @Override
+                        public void onHeaders(Metadata headers) {
+                            LOGGER.info("ClientInterceptor:headers:receive:{}", headers);
+                            super.onHeaders(headers);
+                        }
+                    }, headers);
+                }
+            };
+        }
+    }
+
     @Before
     public void before() {
-        managedChannel = ManagedChannelBuilder.forAddress("localhost", grpcPort).usePlaintext(true).build();
+        managedChannel = ManagedChannelBuilder.forAddress("localhost", grpcPort)
+                .usePlaintext(true)
+                .intercept(new GrpcClientInterceptor())
+                .build();
         userServiceBlockingStub = UserServiceGrpc.newBlockingStub(managedChannel);
+        userServiceBlockingStub.withCompression("gzip");
         userServiceStub = UserServiceGrpc.newStub(managedChannel);
+        userServiceStub.withCompression("gzip");
     }
 
     @After

@@ -7,11 +7,12 @@ import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
 import me.hebaceous.grpc.UserServiceGrpc.UserServiceBlockingStub;
 import me.hebaceous.grpc.UserServiceGrpc.UserServiceStub;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,21 +21,27 @@ import java.util.concurrent.CountDownLatch;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class GrpcApplicationTests implements InitializingBean {
+public class GrpcApplicationTests {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(GrpcApplicationTests.class);
 
     @Value("${grpc.port}")
     private int grpcPort;
 
+    private ManagedChannel managedChannel;
     private UserServiceBlockingStub userServiceBlockingStub;
     private UserServiceStub userServiceStub;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        ManagedChannel managedChannel = ManagedChannelBuilder.forAddress("localhost", grpcPort).usePlaintext(true).build();
+    @Before
+    public void before() {
+        managedChannel = ManagedChannelBuilder.forAddress("localhost", grpcPort).usePlaintext(true).build();
         userServiceBlockingStub = UserServiceGrpc.newBlockingStub(managedChannel);
         userServiceStub = UserServiceGrpc.newStub(managedChannel);
+    }
+
+    @After
+    public void after() {
+        managedChannel.shutdown();
     }
 
     @Test

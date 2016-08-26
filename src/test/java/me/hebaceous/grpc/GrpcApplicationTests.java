@@ -1,5 +1,8 @@
 package me.hebaceous.grpc;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 import io.grpc.*;
@@ -19,7 +22,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+
+import static me.hebaceous.grpc.UserServiceGrpc.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -33,6 +40,7 @@ public class GrpcApplicationTests {
     private ManagedChannel managedChannel;
     private UserServiceBlockingStub userServiceBlockingStub;
     private UserServiceStub userServiceStub;
+    private UserServiceFutureStub userServiceFutureStub;
 
     private class GrpcClientInterceptor implements ClientInterceptor {
         @Override
@@ -59,10 +67,12 @@ public class GrpcApplicationTests {
                 .usePlaintext(true)
                 .intercept(new GrpcClientInterceptor())
                 .build();
-        userServiceBlockingStub = UserServiceGrpc.newBlockingStub(managedChannel);
-        userServiceBlockingStub.withCompression("gzip");
-        userServiceStub = UserServiceGrpc.newStub(managedChannel);
-        userServiceStub.withCompression("gzip");
+        userServiceBlockingStub = newBlockingStub(managedChannel);
+//        userServiceBlockingStub.withCompression("gzip");
+        userServiceStub = newStub(managedChannel);
+//        userServiceStub.withCompression("gzip");
+        userServiceFutureStub = newFutureStub(managedChannel);
+//        userServiceFutureStub.withCompression("gzip");
     }
 
     @After
@@ -106,5 +116,27 @@ public class GrpcApplicationTests {
         Int32Value id = Int32Value.newBuilder().setValue(5).build();
         UserProto.User user = userServiceBlockingStub.fetchById(id);
         System.out.println(user.getId() + ":" + user.getName());
+    }
+
+    @Test
+    public void testFetchByIdFuture() throws InterruptedException, ExecutionException {
+        Int32Value id = Int32Value.newBuilder().setValue(5).build();
+        ListenableFuture<UserProto.User> listenableFuture = userServiceFutureStub.fetchById(id);
+
+        // 直接get
+        UserProto.User user = listenableFuture.get();
+        System.out.println(user);
+
+        // guava
+        Futures.addCallback(listenableFuture, new FutureCallback<UserProto.User>() {
+            @Override
+            public void onSuccess(@Nullable UserProto.User result) {
+                System.out.println(result);
+            }
+            @Override
+            public void onFailure(Throwable t) {
+                LOGGER.error("FutureCallback onFailure", t);
+            }
+        });
     }
 }

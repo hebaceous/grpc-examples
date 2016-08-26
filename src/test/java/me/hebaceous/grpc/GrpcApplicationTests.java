@@ -97,6 +97,7 @@ public class GrpcApplicationTests {
             @Override
             public void onError(Throwable t) {
                 LOGGER.info("onError", t);
+                countDownLatch.countDown();
             }
             @Override
             public void onCompleted() {
@@ -127,16 +128,20 @@ public class GrpcApplicationTests {
         UserProto.User user = listenableFuture.get();
         System.out.println(user);
 
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         // guava
         Futures.addCallback(listenableFuture, new FutureCallback<UserProto.User>() {
             @Override
             public void onSuccess(@Nullable UserProto.User result) {
                 System.out.println(result);
+                countDownLatch.countDown();
             }
             @Override
             public void onFailure(Throwable t) {
                 LOGGER.error("FutureCallback onFailure", t);
+                countDownLatch.countDown();
             }
         });
+        countDownLatch.await();
     }
 }

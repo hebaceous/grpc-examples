@@ -6,6 +6,7 @@ option java_package = "me.hebaceous.grpc";
 option java_outer_classname = "UserProto";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 message User {
     int32 id = 1;
@@ -14,4 +15,5 @@ message User {
 
 service UserService {
     rpc All (google.protobuf.Empty) returns (stream User) {}
+    rpc FetchById (google.protobuf.Int32Value) returns (User) {}
 }

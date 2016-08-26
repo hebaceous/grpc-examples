@@ -1,6 +1,7 @@
 package me.hebaceous.grpc;
 
 import com.google.protobuf.Empty;
+import com.google.protobuf.Int32Value;
 import io.grpc.stub.StreamObserver;
 import me.hebaceous.grpc.UserProto.User;
 import org.lognet.springboot.grpc.GRpcService;
@@ -32,4 +33,10 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase implements 
         responseObserver.onCompleted();
     }
 
+    @Override
+    public void fetchById(Int32Value request, StreamObserver<User> responseObserver) {
+        User user = usersMap.get(request.getValue());
+        responseObserver.onNext(user);
+        responseObserver.onCompleted();
+    }
 }

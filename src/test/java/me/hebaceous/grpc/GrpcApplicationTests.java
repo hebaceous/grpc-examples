@@ -1,6 +1,7 @@
 package me.hebaceous.grpc;
 
 import com.google.protobuf.Empty;
+import com.google.protobuf.Int32Value;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.ClientCallStreamObserver;
@@ -73,5 +74,12 @@ public class GrpcApplicationTests {
             }
         });
         countDownLatch.await();
+    }
+
+    @Test
+    public void testFetchById() {
+        Int32Value id = Int32Value.newBuilder().setValue(5).build();
+        UserProto.User user = userServiceBlockingStub.fetchById(id);
+        System.out.println(user.getId() + ":" + user.getName());
     }
 }

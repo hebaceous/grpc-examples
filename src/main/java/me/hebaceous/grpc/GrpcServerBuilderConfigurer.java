@@ -13,8 +13,7 @@ import org.springframework.stereotype.Component;
 public class GrpcServerBuilderConfigurer extends GRpcServerBuilderConfigurer {
 
     @Override
-    public ServerBuilder<?> configure(ServerBuilder<?> serverBuilder) {
-        return serverBuilder;
+    public void configure(ServerBuilder<?> serverBuilder) {
     }
 
 }

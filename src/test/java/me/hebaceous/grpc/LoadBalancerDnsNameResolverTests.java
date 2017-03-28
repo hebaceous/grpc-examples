@@ -1,6 +1,7 @@
 package me.hebaceous.grpc;
 
 import com.google.protobuf.Empty;
+import com.google.protobuf.Int32Value;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.internal.DnsNameResolverProvider;
@@ -12,14 +13,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.IntStream;
-
 import static me.hebaceous.grpc.UserServiceGrpc.newBlockingStub;
 
-public class LoadBalancerTests {
+public class LoadBalancerDnsNameResolverTests {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(LoadBalancerTests.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(LoadBalancerDnsNameResolverTests.class);
 
     private ManagedChannel managedChannel;
     private UserServiceBlockingStub userServiceBlockingStub;
@@ -41,13 +39,12 @@ public class LoadBalancerTests {
 
     @Test
     public void testAllBlock() throws InterruptedException {
-        CountDownLatch countDownLatch = new CountDownLatch(1000);
-        IntStream.range(0, 1000).forEach(index -> {
-            new Thread(() -> {
-                userServiceBlockingStub.all(Empty.getDefaultInstance()).forEachRemaining(System.out::println);
-                countDownLatch.countDown();
-            }).start();
-        });
-        countDownLatch.await();
+        // 1
+        userServiceBlockingStub.all(Empty.getDefaultInstance())
+                .forEachRemaining(user ->
+                        System.out.println(user.getId() + ":" + user.getName()));
+        // 2
+        UserProto.User user = userServiceBlockingStub.fetchById(Int32Value.newBuilder().setValue(5).build());
+        System.out.println(user);
     }
 }

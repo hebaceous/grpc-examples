@@ -40,6 +40,7 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase implements 
 
     @Override
     public void fetchById(Int32Value request, StreamObserver<User> responseObserver) {
+        LOGGER.info("-------fetchById(" + request.getValue() + ")-------");
         User user = usersMap.get(request.getValue());
         responseObserver.onNext(user);
         responseObserver.onCompleted();

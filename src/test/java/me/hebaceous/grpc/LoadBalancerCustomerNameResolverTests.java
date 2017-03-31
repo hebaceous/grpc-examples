@@ -4,7 +4,6 @@ import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
 import me.hebaceous.grpc.UserServiceGrpc.UserServiceBlockingStub;
 import org.junit.After;
@@ -20,18 +19,18 @@ import static me.hebaceous.grpc.UserServiceGrpc.newBlockingStub;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class LoadBalancerDnsNameResolverTests {
+public class LoadBalancerCustomerNameResolverTests {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(LoadBalancerDnsNameResolverTests.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(LoadBalancerCustomerNameResolverTests.class);
 
     private ManagedChannel managedChannel;
     private UserServiceBlockingStub userServiceBlockingStub;
 
     @Before
     public void before() {
-        managedChannel = ManagedChannelBuilder.forTarget("dns:///grpc.hebaceous.me:6565")
+        managedChannel = ManagedChannelBuilder.forTarget("hebaceous://localhost,6565;127.0.0.1,6565")
                 .usePlaintext(true)
-                .nameResolverFactory(DnsNameResolverProvider.asFactory())
+                .nameResolverFactory(new CustomerNameResolverProvider())
                 .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
                 .build();
         userServiceBlockingStub = newBlockingStub(managedChannel);

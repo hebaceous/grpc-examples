@@ -1,0 +1,14 @@
+grpc:
+  port: 6565
+
+spring:
+  application:
+    name: demo-service
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        port: ${grpc.port}
+        register-health-check: false
+        instance-id: ${spring.application.name}-${random.value}

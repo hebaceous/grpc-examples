@@ -27,6 +27,7 @@
         <grpc-spring-boot-starter.version>2.1.5</grpc-spring-boot-starter.version>
         <grpc.version>1.10.0</grpc.version>
         <protoc.version>3.5.1</protoc.version>
+        <java-jwt.version>3.3.0</java-jwt.version>
     </properties>
 
     <dependencyManagement>
@@ -73,6 +74,11 @@
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-grpclb</artifactId>
                 <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${java-jwt.version}</version>
             </dependency>
             <dependency>
                 <groupId>me.hebaceous.grpc</groupId>
